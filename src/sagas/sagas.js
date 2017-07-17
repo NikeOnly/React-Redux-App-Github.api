@@ -1,6 +1,6 @@
 import { call, put, cancel, takeEvery, takeLatest, all } from 'redux-saga/effects'
 import axios from 'axios'
-import {AUTH, REPO_INFO, BRANCHES_INFO} from '../constants/constants'
+import {REPO_INFO, BRANCHES_INFO} from '../constants/constants'
 
 const ROOT_URL = 'https://api.github.com';
 
@@ -16,8 +16,8 @@ const repoInfo = (username) => {
 function* getRepoInfo(action) {
   try {
     if (action.payload.user_name) {
-      const request = yield call(repoInfo, action.payload.user_name)
-      yield put({type: REPO_INFO, payload: request});
+      const response = yield call(repoInfo, action.payload.user_name)
+      yield put({type: REPO_INFO, payload: response});
     } else {
       yield cancel();
     }
@@ -25,11 +25,6 @@ function* getRepoInfo(action) {
     throw error;
   }
 }
-
-function* myRepo() {
-  yield takeLatest(REPO_INFO, getRepoInfo);
-}
-
 
 // BRANCHES
 
@@ -43,8 +38,8 @@ const branchesInfo = (user_name, repo_name) => {
 function* getBranchesInfo(action) {
   try {
     if (action.payload.user_name && action.payload.repo_name) {
-      const request = yield call(branchesInfo, action.payload.user_name, action.payload.repo_name);
-      yield put({type: BRANCHES_INFO, payload: request});
+      const response = yield call(branchesInfo, action.payload.user_name, action.payload.repo_name);
+      yield put({type: BRANCHES_INFO, payload: response});
     } else {
       yield cancel();
     }
@@ -53,14 +48,10 @@ function* getBranchesInfo(action) {
   }
 }
 
-function* myBranches() {
-  yield takeLatest(BRANCHES_INFO, getBranchesInfo);
-}
-
 export function* rootSaga() {
   yield all([
-    myRepo(),
-    myBranches()
+    takeLatest(REPO_INFO, getRepoInfo),
+    takeLatest(BRANCHES_INFO, getBranchesInfo)
   ])
 }
 
